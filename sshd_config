@@ -466,7 +466,6 @@ HostCertificate none
 # options.sk_provider/sshd_hostkey_sign()
 # options.sk_provider/mm_answer_sign()
 # SecurityKeyProvider defaults to 'internal'.
-SecurityKeyProvider internal
 
 # UseDNS specifies whether sshd(8) should look up the
 # remote host name, and to check that the resolved
@@ -1541,7 +1540,7 @@ StreamLocalBindMask 0177
 # CLI option: -o
 # options.kerberos_get_afs_token
 # KerberosGetAFSToken defaults to 'no'.
-KerberosGetAFSToken no
+# KerberosGetAFSToken no
 
 # PermitUserRC specifies whether any ~/.ssh/rc file
 # is executed.
@@ -1735,12 +1734,26 @@ PermitOpen any
 # KbdInteractiveAuthentication defaults to 'ChallengeResponseAuthentication'.
 KbdInteractiveAuthentication yes
 
-# PubkeyAuthOptions  TODO: finish this
+# PubkeyAuthOptions sets one or more public key 
+# authentication options. Two option keywords are 
+# currently supported: none (the default; indicating 
+# no additional options are enabled) and touch-required.
+#
+# The touch-required option causes public key 
+# authentication using a FIDO authenticator algorithm 
+# (i.e. ecdsa-sk or ed25519-sk) to always require the 
+# signature to attest that a physically present user 
+# explicitly confirmed the authentication (usually by 
+# touching the authenticator). By default, sshd(8) 
+# requires user presence unless overridden with an 
+# authorized_keys option. The touch-required flag 
+# disables this override. This option has no effect 
+# for other, non-authenticator public key types.
 # Valid values are: 'none', 'touch-required'.
 #
 # options.pubkey_auth_options
 # PubkeyAuthOptions defaults to 'none'.
-PubkeyAuthOptions touch-required
+# PubkeyAuthOptions none
 
 
 #####################################################
