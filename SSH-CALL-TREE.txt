@@ -1,0 +1,458 @@
+SSH Server
+
+  ssh_dispatch_run: START: type 90  SSH2_MSG_CHANNEL_OPEN
+  ssh_dispatch_run: END: type 90
+  ssh_dispatch_run: START: type 98  SSH2_MSG_CHANNEL_REQUEST
+  ssh_dispatch_run: END: type 98
+  ssh_dispatch_run: START: type 98
+  ssh_dispatch_run: END: type 98
+  ssh_dispatch_run: START: type 98
+
+
+main()/sshd.c
+  compat_init_setproctitle()/sshd.c
+  sanitize_stdfd()
+  seed_rng()/ssh_api.c
+  initialize_server_options()
+  load_server_options()
+  parse_server_options()
+  fill_default_server_options()
+  log_init()
+  server_accept_inetd()
+  platform_pre_listen()
+  server_listen()
+    options.listen_addrs[]
+    options.num_listen_addrs
+  server_accept_loop()
+  setproctitle()
+  ssh_packet_set_connection()
+  ssh_packet_set_server()
+  check_ip_options()
+  channel_init_channels()
+  channel_set_af()
+  process_permitopen()
+  ssh_packet_connection_is_on_socket()
+  set_process_rdomain()
+  ssh_remote_ipaddr()
+  ssh_packet_rdomain_in()
+  get_local_ipaddr()
+  kex_exchange_identification()  # SSH version exchange
+  ssh_packet_set_nonblocking()
+  sshauthopt_new_with_keys_defaults()
+  sshbuf_new()
+  auth_debug_reset()
+  privsep_preauth() <--- Loop during authentication
+    monitor_init()
+    ssh_sandbox_init()
+    fork()
+    monitor_child_preauth()  # <-- loop during authentication
+      monitor_permit(MONITOR_REQ_MODULI)
+        *(mon_dispatch_proto20[])
+          mm_answer_moduli()
+            choose_dh()
+            mm_request_send()
+      monitor_permit(MONITOR_REQ_SIGN)
+        *(mon_dispatch_proto20[])
+          mm_answer_sign()/monitor.c
+            get_hostkey_public_by_index()/monitor.c
+      monitor_read()
+    ssh_get_authentication_socket() (ssh-agent)
+    ssh_sandbox_parent_preauth()
+    waitpid()
+    ssh_sandbox_parent_finish()
+    #forked child process
+    set_log_handler()
+    privsep_auth_child()
+    setproctitle()
+    ssh_sandbox_child()
+
+  ssh_get_authentication_socket()
+  do_ssh2_kex()
+    options.kex_algorithms
+    compat_kex_proposal()
+    options.ciphers
+    compat_cipher_proposal()
+    options.macs
+    options.compression
+    options.rekey_limit
+    options.rekey_interval
+    compat_pkalg_proposal()
+    kex_setup()
+    ssh_dispatch_run_fatal()/dispatch.c
+      ssh_dispatch_run()/dispatch.c
+        *ssh->dispatch[type]()
+          input_kex_gen_init()/kexgen.c
+            sshd_hostkey_sign()/sshd.c
+              mm_sshkey_sign()/monitor_wrap.c
+                mm_request_receive_expect()/monitor_wrap.c
+    packet_start()
+    packet_send()
+    packet_write_wait()
+  do_authentication2()/auth2.c
+    ssh_dispatch_init()
+    ssh_dispatch_set(SSH2_MSG_SERVICE_REQUEST)
+    ssh_dispatch_fatal()/dispatch.c
+      ssh_dispatch_run()/dispatch.c
+        *ssh->dispatch[type]()
+          input_service_request()
+          input_userauth_request()/auth2.c
+            sshpkt_get_string()
+            options.use_pam
+            ssh_packet_set_log_preamble()
+            setproctitle()
+            mm_inform_authserv()
+            userauth_banner()/auth2.c
+              options.banner
+              auth2_read_banner()/auth2.c
+                options.banner
+              userauth_send_banner()/auth2.c
+                sshpkt_start()
+                sshpkt_put_cstring()
+                sshpkt_send()
+            auth2_setup_methods_list()
+              options.num_auth_methods
+              *options.auth_methods[]
+            auth2_challenge_stop()
+            auth2_authctxt_reset_info()
+            authmethod_lookup()
+              auth2_method_allowed()
+                options.num_auth_methods
+              *(m->userauth[])
+                userauth_hostbased()
+                  sshkey_ssh_name()/sshkey.c
+                  sshkey_fingerprint()/sshkey.c
+                  get_local_name()
+                  sshkey_sign()/sshkey.c
+                    sshkey_XXX_sign()/sshkey.c
+                  sshpkt_send()
+                userauth_pubkey()
+                userauth_kbdint()
+                  auth2_challenge()
+                    auth2_challenge_start()
+                      kbdint_next_device()
+                      auth_challenge_stop()
+                      send_userauth_info_request()
+                      ssh_dispatch_set(SSH2_MSG_USERAUTH_INFO_RESPONSE)
+                userauth_passwd()
+                userauth_gssapi()
+            options.max_authtries
+            user_specific_delay()
+              options.timing_secret
+            userauth_finish()
+              auth_root_allowed()
+              options.num_auth_methods
+              auth2_update_methods_lists()
+              auth_log()
+              auth2_update_session_info()
+              options.use_pam
+              do_pam_account()
+              userauth_send_banner()
+              ssh_packet_write_wait()
+              ssh_dispatch_set(SSH2_MSG_USERAUTH_REQUEST)
+              sshpkt_start()
+              sshpkt_send()
+              ssh_packet_set_log_preamble()
+              options.max_authtries
+              auth_maxtries_exceeded()
+              authmethods_get()
+          userauth_finish()?
+  mm_send_keystate()
+  ssh_packet_clear_keys()
+  temporarily_use_uid()
+  ssh_gssapi_storecreds()
+  restore_ui()
+  do_pam_setcred()
+  do_pam_session()
+  privsep_postauth()
+  ssh_packet_set_timeout()
+  notify_hostkeys()
+  do_authenticated()/session.c  <-- forever
+    setproctitle()
+    auth_log_authopts()
+    set_fwdpermit_from_authopts()/session.c
+      options.allow_tcp_forwarding
+      channel_clear_permission()
+      cleanhostname()
+      permitopen_port()
+      channel_add_permission()
+    options.permit_port_forwarding_flag
+    options.disable_forwarding
+    channel_disable_admin()
+    auth_debug_send()
+    prepare_auth_info_file()/session.c
+      options.expose_userauth_info
+    do_authenticated2()/session.c
+      server_loop2()/serverloop.c
+        server_init_dispatch()
+          *kex_input_kexinit()/SSH2_MSG_KEXINIT
+          *server_input_channel_open()/SSH2_MSG_CHANNEL_OPEN
+            server_request_session()/serverloop.c
+              sshpkt_get_end()
+              channel_new()
+              session_open()/session.c
+                session_new()/session.c
+                  options.max_sessions()
+                  session_unused()/session.c
+                    options.max_sessions()
+              channel_register_cleanup()
+            server_request_direct_tcpip()
+              options.allow_tcp_forwarding
+              options.disable_forwarding
+              channel_connect_to_port()
+            server_request_direct_streamlocal()
+              options.allow_streamlocal_forwarding
+              options.disable_forwarding
+              channel_connect_to_path()
+            server_request_tun()
+              options.permit_tun
+              tun_open()
+              channel_new()
+              channel_register_filter()
+          *server_input_channel_req()/SSH2_MSG_CHANNEL_REQUEST/serverloop.c
+            channel_lookup()
+            session_input_channel_req()/session.c (see below)
+          *channel_input_open_confirmation()/SSH2_MSG_CHANNEL_OPEN_CONFIRMATION
+          *channel_input_open_failure()/SSH2_MSG_CHANNEL_OPEN_FAILURE
+          *channel_input_window_adjust()/SSH2_MSG_CHANNEL_WINDOW_ADJUST
+          *server_input_input_global_request()/SSH2_MSG_GLOBAL_REQUEST
+            options.allow_tcp_forwarding
+            options.disable_forwarding
+            channel_setup_remote_fwd_listener()/channels.c
+              check_rfwd_permission()
+              channel_setup_fwd_listener_streamlocal()/channels.c
+                umask()
+                options.fwds.streamlocal_bind_mask
+                unix_listener()
+              channel_setup_fwd_listener_tcpip()/channels.c
+                channel_fwd_bind_addr()
+                socket()
+                bind()
+                listen()
+                channel_new()
+            options.allow_streamlocal_forwarding
+            server_input_hostkeys_prove()
+          *server_input_keep_alive()/SSH2_MSG_CHANNEL_xxxx
+          *channel_input_oclose()/SSH2_MSG_CHANNEL_CLOSE
+          *channel_input_data()/SSH2_MSG_CHANNEL_DATA
+          *channel_input_ieof()/SSH2_MSG_CHANNEL_EOF
+          *channel_input_extended_data()/SSH2_MSG_CHANNEL_EXTENDED_DATA
+        ssh_packet_get_connection_in()
+        ssh_packet_get_connection_out()
+        notify_setup()
+        server_init_dispatch()
+        process_buffered_input_packets()/serverloop.c
+          ssh_dispatch_run_fatal()/dispatch.c
+            ssh_dispatch_run()/dispatch.c
+              ssh->dispatch[type]()
+        options.rekey_interval
+        wait_until_can_do_something()/serverloop.c
+          channel_prepare_select()/channels.c
+            channel_before_prepare_select()
+            ssh_packet_is_rekeying()
+            channel_handler()
+          options.client_alive_interval
+          notify_prepare()
+          ssh_packet_have_data_to_write()
+          ssh_packet_not_very_much_data_to_write()
+          select()
+          client_alive_check()
+            ssh_packet_inc_alive_timeouts()
+            options.client_alive_count_max
+            logit()
+            cleanup_exit()
+            channel_find_open()
+            channel_request_start()
+          notify_done()
+        channel_after_select()
+        process_input()
+        process_output()
+        collect_children()
+        channel_free_all()
+        session_destroy_all()
+    do_cleanup()/session.c
+      options.use_pam
+      sshpam_cleanup()
+      sshpam_thread_cleanup()
+      options.kerberos_ticket_cleanup
+      krb5_cleanup_proc()
+      options.gss_cleanup_creds
+      ssh_gssapi_cleanup_creds()
+      auth_sock_cleanup_proc()/session.c
+      session_destroy_all()
+  ssh_packet_get_bytes()
+
+auth2_key_already_used()/auth2.c
+  sshkey_equal_public()
+  options.fingerprint_hash
+
+
+do_send_and_receive()/test_kex.c
+  ssh_packet_next()/ssh_api.c
+    ssh->dispatch[type]()
+
+do_send_and_receive()/kexfuzz.c
+  ssh_packet_next()/ssh_api.c
+    ssh->dispatch[type]()
+
+do_login()/session.c - OSF-only
+  ssh_packet_connection_is_on_socket()
+  getpeername()
+  record_login()
+  options.use_pam
+  display_loginmsg()/session.c
+  do_pam_chauthtok()
+  check_quietlogin() - OSF-only
+  display_loginmsg()/session.c
+  do_motd()/session.c - OSF-only
+    options.use_pam
+    login_getcapstr()
+
+read_etc_default_login()/session.c
+  read_environment_file()
+  options.permit_user_env_whitelist
+  child_get_env("SUPATH")/session.c
+  child_get_env("PATH")/session.c
+  child_get_env("UMASK")/session.c
+
+
+session_subsystem_req()
+  options.num_subsystems
+  *options.subsystem_name
+  *options.subsystem_command
+  *options.subsystem_args
+  stat()
+  do_exec()/session.c
+    options.adm_forced_command
+    audit_run_command()
+    do_exec_pty()/session.c
+      pty_make_controlling_tty()
+      do_child()/session.c
+      ssh_packet_set_interactive()
+    do_exec_nopty()/session.c
+      pipe()
+      socketpair()
+      session_proctitle()
+      fork()
+      do_child()/session.c
+        sshpkt_fmt_connection_id()
+        destroy_sensitive_data()
+        ssh_packet_clear_keys()
+        do_pwchange()/session.c
+        options.use_pam
+        do_nologin()/session.c  - use_pam == 0
+        do_setusercontext()/session.c
+          platform_setusercontext()
+          platform_privileged_uidswap()
+          setusercontext()
+          setlogin()
+          setgid()
+          initgroups()
+          platform_setusercontext_post_groups()
+          options.chroot_directory
+          safely_chroot()/session.c
+          setusercontext()
+          permanently_set_uid()
+        check_quietlogin()  - OSF-only
+        display_loginmsg()/session.c
+        do_setup_env()/session.c
+          setup_windows_environment()
+          copy_environment()/session.c
+          free_windows_environment()
+          do_gssapi_do_child()
+          child_set_env("USER")
+          child_set_env("LOGNAME")
+          child_set_env("LOGIN") - AIX only
+          child_set_env("HOME")
+          child_set_env("PATH")
+          child_set_env("MAIL") - No PAM
+          child_set_env("SHELL")
+          child_set_env("TZ")
+          child_set_env("TERM")
+          child_set_env("DISPLAY")
+          child_set_env("KRB5CCNAME")
+          child_set_env("SSH_AUTH_SOCK")
+          options.permit_user_env
+          options.permit_user_env_whitelist
+          read_environment_file()
+          fetch_pam_child_environment()
+          copy_environment_blacklist()/session.c
+          fetch_pam_environment()
+          options.num_setenv
+          child_set_env("SSH_CLIENT")
+          child_set_env("SSH_CONNECTION")
+          child_set_env("SSH_TUNNEL")
+          child_set_env("SSH_USER_AUTH")
+          child_set_env("SSH_TTY")
+          child_set_env("SSH_ORIGINAL_COMMAND")
+        login_getcapstr()
+        options.kerberos_get_afs_token
+        chdir()
+        do_rc_files()/session.c
+          options.adm_forced_command
+          options.permit_user_rc
+          popen()
+          options.xauth_location
+        execvc("SHELL")
+      ssh_packet_set_interactive()
+        options.ip_qos_interactive
+        options.ip_qos_bulk
+      sshbuf_reset()
+      session_set_fds()
+    sshbuf_reset()
+
+
+session_input_channel_req()/session.c
+  session_by_channel()/session.c
+  session_pty_req()
+    options.permit_pty_flag
+    options.permit_tty
+    ssh_tty_parse_modes()
+    pty_setowner()
+    pty_change_window_size()
+    session_proctitle()
+  session_shell_req()
+    do_exec()
+  session_exec_req()
+    do_exec()
+  session_x11_req()
+    session_setup_x11fwd()
+      options.permit_x11_forwarding_flag
+      options.x11_forwarding
+      options.xauth_location
+      x11_create_display_inet()
+      options.x11_display_offset
+      options.x11_use_localhost
+  session_auth_agent_req()
+    sshpkt_get_end()
+    options.permit_agent_forwarding_flag
+    options.allow_agent_forwarding
+    auth_input_request_forwarding()/session.c
+  session_subsystem_req()
+    options.num_subsystems
+    *options.subsystem_name[]
+    *options.subsystem_command[]
+    *options.subsystem_args[]
+    do_exec()
+  session_env_req()
+    options.num_accept_env
+    *options.accept_env[]
+  session_window_change_req()
+    pty_change_window_size()
+  session_break_req()
+  session_signal_req()
+
+SSH Client (incomplete)
+main()/ssh.c
+  compat_init_setproctitle()/ssh.c
+  seed_rng()/ssh_api.c
+  msetlocale()/
+  initialize_options()
+  ssh_alloc_session_state()
+  channel_init_channels()
+  log_init()
+  process_config_files()
+  fill_default_options_for_canonicalization()
+
+
+
+

@@ -1,0 +1,3 @@
+A list of all algorithms used within SSH
+
+https://ssh-comparison.quendi.de/comparison/kex.html

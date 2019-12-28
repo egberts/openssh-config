@@ -1,0 +1,28 @@
+
+#  ssh -Q kex
+
+Sts  bits mac        hash SSH kex name
+rec  ECDH Curve25519 SHA2 curve25519-sha256
+rec  ECDH Curve25519 SHA2 curve25519-sha256@libssh.org
+rec  2048 DH         SHA2 diffie-hellman-group14-sha256
+rec  4096 DH         SHA2 diffie-hellman-group16-sha512
+rec  8192 DH         SHA2 diffie-hellman-group18-sha512
+dnu  1024 DH         SHA1 diffie-hellman-group1-sha1
+dnu  2048 DH         SHA1 diffie-hellman-group14-sha1
+dnu  1-8K DH         SHA1 diffie-hellman-group-exchange-sha1
+dnu  1-8K DH         SHA256 diffie-hellman-group-exchange-sha256
+dnu  ECDH NIST-P-256 SHA2 ecdh-sha2-nistp256
+dnu  ECDH NIST-P-384 SHA2 ecdh-sha2-nistp384
+dnu  ECDH NIST-P-521 SHA2 ecdh-sha2-nistp521
+
+dnu - Do Not Use
+rec - Recommended
+
+SHA1-160
+SHA2-224
+SHA2-256
+SHA2-384
+SHA2-512
+SHA2-512/224
+SHA2-512/256
+

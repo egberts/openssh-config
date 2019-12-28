@@ -143,8 +143,11 @@ AddressFamily inet
 
 # Port specifies the port number to connect on the
 #    remote host.  The default is 22.
+#    Multiple 'Port' statements of different port
+#    numbers are allowed.
 #    Source: main()/ssh.c
 Port 22
+Port 2223
 
 # ProxyCommand specifies the command to use to
 #    connect to the server.  The command string
@@ -239,6 +242,8 @@ Protocol 2
 #    automatically terminate after it has remained
 #    idle (with no client connections) for the
 #    specified time.  (ssh_session2()/ssh.c)
+#    There is a minimal risk of saying 'yes' here
+#    to hijacking of existing SSH sessions.
 #    Source: main()/ssh.c
 # ControlPersist   # not specified by default
 
@@ -344,6 +349,7 @@ SyslogFacility AUTH
 #    This ensures that shared connections are
 #    uniquely identified.
 #    Source: options.control_path/main()/ssh.c
+# ControlPath ~/.ssh/socket/%r@%h-%p
 
 # ConnectTimeout specifies the timeout (in seconds)
 #    used when connecting to the SSH server, instead
@@ -353,7 +359,7 @@ SyslogFacility AUTH
 #    connection.
 #    Source: options.connect_timeout/main()/ssh.c
 # ConnectTimeout 0  # default
-ConnectTimeout 0
+ConnectTimeout 15
 
 # TCPKeepAlive specifies whether the system should
 #    send TCP keepalive messages to the other side.
@@ -877,7 +883,8 @@ GSSAPIAuthentication yes
 #     keyboard-interactive,password
 #
 #     Source: options.preferred_authentication/ssh_userauth2()/ssh_login()/sshconnect2.c
-PreferredAuthentications gssapi-with-mic,hostbased,publickey,keyboard-interactive,password
+# PreferredAuthentications gssapi-with-mic,hostbased,publickey,keyboard-interactive,password # default
+PreferredAuthentications gssapi-with-mic,hostbased,publickey,keyboard-interactive # default
 
 # CertificateFile specifies a file from which the user
 #    's certificate is read.  A corresponding private
@@ -1541,4 +1548,5 @@ Host *
 # RSAAuthentication yes
 # GSSAPIKeyExchange no
 # GSSAPITrustDNS no
+
 

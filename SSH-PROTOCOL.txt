@@ -1,0 +1,21 @@
+SSHv2 Protocol
+
+ --       SSH version        -->
+<--       SSH version        --
+
+ -- Client Key Exchange Init -->
+<-- Server Key Exchange Init --
+
+<-- Diffie-Hellman Exchange  -->
+
+ -- SSH2_MSG_SERVICE_REQUEST -->
+<-- SSH2_MSG_SERVICE_ACCEPT  -->
+
+ -- SSH2_MSG_USERAUTH_REQUEST-->
+<-- SSH2_MSG_USERAUTH_SUCCESS--
+
+ -- SSH2_MSG_MSG_CHANNEL_OPEN-->
+<-- SSH2_MSG_MSG_CHANNEL_OPEN_CONFIRMATION --
+
+ -- SSH2_MSG_MSG_CHANNEL_DATA-->
+<-- SSH2_MSG_MSG_CHANNEL_DATA --
