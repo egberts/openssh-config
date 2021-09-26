@@ -2,7 +2,7 @@
 Latest security settings in OpenSSH configuration files, broken down to individual files and heavily annotated with details.
 
 # CAVEATS
-This stuff is not going to work on macOS Big Sur (11.3; OpenSSH_8.1p1) or lower because Apple OS team actually yanked the support for this `include` directive keyword OUT of their brand of OpenSSH server (`/etc/ssh/sshd_config`).  But you can use "half" of this repo for the client side.  Sorry.
+This stuff is not going to work on macOS Big Sur (11.3; OpenSSH_8.1p1) or lower because Apple OS team actually yanked the support for this `include` directive keyword OUT of their brand of OpenSSH server (`/etc/ssh/sshd_config`).  But you can use "half" of this repo for the client side.  Sorry.  What's interesting is that when you first edit their `sshd_config`, it gets relocated to `/private/etc/ssh/sshd_config` but still... no support for `include` statement keyword on the server side (just client-side).
 
 # Organization
 The OpenSSH option parameter settings in the ssh_config configuration file has been reorganized to execution-order; not when it was first read from the configuration but when it was first REFERENCED in the executablec code.
