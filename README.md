@@ -1,5 +1,5 @@
 # openssh-config
-Latest security settings in OpenSSH configuration files.
+Latest security settings in OpenSSH configuration files, broken down to individual files and heavily annotated with details.
 
 # CAVEATS
 This stuff is not going to work on macOS Big Sur (11.3; OpenSSH_8.1p1) or lower because Apple OS team actually yanked the support for this 'include' directive keyword OUT of their brand of OpenSSH server.  But you can use "half" of this repo for the client side.  Sorry.
